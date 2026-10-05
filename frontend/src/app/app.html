@@ -1,0 +1,33 @@
+<a class="skip-link" href="#main">Ir al contenido</a>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/"
+      ><span class="brand-mark">a.</span><span>aula<span class="brand-dot">.</span></span></a
+    >
+    <p class="workspace-label">ESPACIO ACADÉMICO</p>
+    <nav aria-label="Navegación principal">
+      <a routerLink="/students" routerLinkActive="active"
+        ><span aria-hidden="true">▦</span> Estudiantes <span class="nav-dot"></span
+      ></a>
+    </nav>
+    <div class="sidebar-note">
+      <span class="note-icon" aria-hidden="true">↗</span
+      ><strong>Todo empieza con aprender.</strong>
+      <p>Un espacio para organizar a quienes construyen el futuro.</p>
+    </div>
+    <div class="sidebar-footer">
+      <span class="avatar">AC</span>
+      <div><strong>Administración</strong><small>Gestión académica</small></div>
+    </div>
+  </aside>
+  <div class="content">
+    <header class="topbar">
+      <span>Institución educativa <span class="slash">/</span> <strong>Directorio</strong></span
+      ><span class="topbar-label">PORTAL ACADÉMICO <span class="tiny-dot"></span></span>
+    </header>
+    <main id="main"><router-outlet /></main>
+    <footer class="main-footer">
+      <span>Aula · Gestión de estudiantes</span><span>Aprender. Conectar. Crecer.</span>
+    </footer>
+  </div>
+</div>

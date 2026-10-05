@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+
+test('register, search, view detail, reject duplicate and adapt to mobile', async ({ page }) => {
+  const email = `maria.${Date.now()}@example.com`;
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/students');
+  await expect(page.getByRole('heading', { name: 'Estudiantes.' })).toBeVisible();
+  await expect(page.getByText('Cargando estudiantes…')).not.toBeVisible();
+  await page.getByRole('button', { name: 'Nuevo estudiante', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Nuevo estudiante' });
+  await dialog.getByRole('button', { name: 'Registrar estudiante' }).click();
+  await expect(dialog.getByText('Ingresa un nombre de hasta 80 caracteres.')).toBeVisible();
+  await dialog.getByLabel('Nombre', { exact: false }).fill('María');
+  await dialog.getByLabel('Apellido', { exact: false }).fill('García');
+  await dialog.getByLabel('Correo electrónico', { exact: false }).fill(email);
+  await dialog.getByRole('button', { name: 'Registrar estudiante' }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByText('María García se registró correctamente.')).toBeVisible();
+  await page.getByRole('searchbox').fill(email);
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Ver detalle de María García' }).click();
+  await expect(page.getByRole('dialog', { name: 'Ficha del estudiante' }).getByText(email)).toBeVisible();
+  await page.getByRole('button', { name: 'Cerrar ficha', exact: true }).click();
+  await page.getByRole('button', { name: 'Nuevo estudiante', exact: true }).click();
+  await dialog.getByLabel('Nombre', { exact: false }).fill('Otra');
+  await dialog.getByLabel('Apellido', { exact: false }).fill('Persona');
+  await dialog.getByLabel('Correo electrónico', { exact: false }).fill(email.toUpperCase());
+  await dialog.getByRole('button', { name: 'Registrar estudiante' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Ya existe un estudiante');
+  await dialog.getByRole('button', { name: 'Cancelar' }).click();
+  await page.getByRole('searchbox').fill('no-existe-este-estudiante');
+  await expect(page.getByRole('heading', { name: 'No encontramos coincidencias' })).toBeVisible();
+  await page.getByRole('button', { name: 'Limpiar búsqueda' }).click();
+  await page.screenshot({ path: 'test-results/directorio-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('button', { name: 'Nuevo estudiante', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'test-results/directorio-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('shows a recoverable error when the API is unavailable', async ({ page }) => {
+  await page.route('**/api/students', route => route.abort());
+  await page.goto('/students');
+  await expect(page.getByRole('heading', { name: 'No pudimos cargar el directorio' })).toBeVisible();
+  await page.unroute('**/api/students');
+  await page.getByRole('button', { name: 'Reintentar' }).click();
+  await expect(page.getByRole('heading', { name: 'No pudimos cargar el directorio' })).not.toBeVisible();
+});

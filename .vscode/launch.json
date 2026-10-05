@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend · Spring Boot",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.academia.students.StudentsApplication",
+      "projectName": "students-api",
+      "cwd": "${workspaceFolder}/backend"
+    },
+    {
+      "name": "Frontend · navegador (iniciar npm start primero)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/frontend"
+    }
+  ]
+}

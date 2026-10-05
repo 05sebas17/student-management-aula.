@@ -1,0 +1,215 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">COMUNIDAD ACADÉMICA</p>
+    <h1>Estudiantes<span>.</span></h1>
+    <p class="intro">Cada estudiante, en un solo lugar.</p>
+  </div>
+  <button class="button primary" (click)="openCreate()">
+    <span aria-hidden="true">＋</span> Nuevo estudiante
+  </button>
+</section>
+<section class="overview" aria-label="Resumen del directorio">
+  <div class="overview-number">
+    <span class="overview-icon" aria-hidden="true">▦</span>
+    <div>
+      <p>Estudiantes registrados</p>
+      <strong>{{ hasLoaded() ? students().length : '—' }}<span>en tu comunidad</span></strong>
+    </div>
+  </div>
+  <div class="overview-message">
+    <span class="tiny-dot"></span>
+    <p>
+      Una comunidad que crece.<br /><strong>Información organizada, conexiones más fáciles.</strong>
+    </p>
+  </div>
+  <span class="overview-art" aria-hidden="true">✳</span>
+</section>
+@if (success()) {
+  <div class="notice success" role="status">
+    <span>✓ {{ success() }}</span
+    ><button class="icon-button" (click)="success.set('')" aria-label="Cerrar mensaje">×</button>
+  </div>
+}
+<section class="directory-card" aria-labelledby="directory-title">
+  <div class="directory-heading">
+    <div>
+      <h2 id="directory-title">
+        Directorio <span class="count">{{ hasLoaded() ? students().length : '—' }}</span>
+      </h2>
+      <p>Consulta y administra la información de tus estudiantes.</p>
+    </div>
+    <button class="button secondary refresh" (click)="load()" [disabled]="loading()">
+      <span aria-hidden="true">↻</span> Actualizar
+    </button>
+  </div>
+  <div class="toolbar">
+    <div class="search">
+      <span aria-hidden="true">⌕</span
+      ><label class="sr-only" for="search">Buscar por nombre, correo o identificador</label
+      ><input
+        id="search"
+        type="search"
+        placeholder="Buscar por nombre, correo o ID…"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+      />
+    </div>
+    <span class="toolbar-note">Todos los estudiantes</span>
+  </div>
+  @if (loading()) {
+    <div class="empty-state" role="status">
+      <span class="spinner"></span>
+      <h3>Cargando estudiantes…</h3>
+      <p>Estamos consultando el directorio.</p>
+    </div>
+  } @else if (error()) {
+    <div class="empty-state" role="alert">
+      <span class="empty-icon">!</span>
+      <h3>No pudimos cargar el directorio</h3>
+      <p>{{ error() }}</p>
+      <button class="button secondary" (click)="load()">Reintentar</button>
+    </div>
+  } @else if (students().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon" aria-hidden="true">＋</span>
+      <h3>Tu comunidad empieza aquí</h3>
+      <p>Registra al primer estudiante para comenzar a organizar tu directorio.</p>
+      <button class="button primary" (click)="openCreate()">
+        Registrar primer estudiante <span aria-hidden="true">↗</span>
+      </button>
+    </div>
+  } @else if (filteredStudents().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon" aria-hidden="true">⌕</span>
+      <h3>No encontramos coincidencias</h3>
+      <p>Prueba con otro nombre, correo o identificador.</p>
+      <button class="button secondary" (click)="query.set('')">Limpiar búsqueda</button>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <caption class="sr-only">
+          Directorio de estudiantes registrados
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">ESTUDIANTE</th>
+            <th scope="col">CORREO ELECTRÓNICO</th>
+            <th scope="col">IDENTIFICADOR</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (student of filteredStudents(); track student.id; let i = $index) {
+            <tr>
+              <td>
+                <div class="student-cell">
+                  <span
+                    class="student-avatar"
+                    [class.lilac]="i % 3 === 1"
+                    [class.peach]="i % 3 === 2"
+                    >{{ initials(student) }}</span
+                  >
+                  <div>
+                    <strong>{{ student.firstName }} {{ student.lastName }}</strong
+                    ><small>Estudiante</small>
+                  </div>
+                </div>
+              </td>
+              <td class="email-cell">{{ student.email }}</td>
+              <td>
+                <span class="id-pill" [title]="student.id">{{ student.id.slice(0, 8) }}</span>
+              </td>
+              <td>
+                <button
+                  class="detail-link"
+                  (click)="showDetails(student.id)"
+                  [attr.aria-label]="'Ver detalle de ' + student.firstName + ' ' + student.lastName"
+                >
+                  Ver detalle <span aria-hidden="true">↗</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  <div class="table-footer">
+    <span role="status">{{ filteredStudents().length }} de {{ students().length }} estudiantes</span
+    ><span>Organizados por apellido <span aria-hidden="true">↓</span></span>
+  </div>
+</section>
+<p class="page-note">
+  <span aria-hidden="true">◇</span> Los datos se guardan automáticamente al registrar un estudiante.
+</p>
+<dialog #createDialog aria-labelledby="create-title" (cancel)="cancelCreate($event)">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">SUMA A TU COMUNIDAD</p>
+      <h2 id="create-title">Nuevo estudiante</h2>
+    </div>
+    <button
+      class="icon-button"
+      autofocus
+      aria-label="Cerrar formulario"
+      (click)="closeCreate()"
+      [disabled]="saving()"
+    >
+      ×
+    </button>
+  </div>
+  <p class="dialog-intro">Completa sus datos para añadirlo al directorio.</p>
+  @if (formError()) {
+    <div class="notice error" role="alert">{{ formError() }}</div>
+  }
+  @if (formVisible()) {
+    <app-student-form
+      [saving]="saving()"
+      (submitted)="create($event)"
+      (cancelled)="closeCreate()"
+    />
+  }
+</dialog>
+<dialog #detailDialog aria-labelledby="detail-title">
+  <div class="dialog-header">
+    <div>
+      <p class="eyebrow">DIRECTORIO ACADÉMICO</p>
+      <h2 id="detail-title">Ficha del estudiante</h2>
+    </div>
+    <button
+      class="icon-button"
+      autofocus
+      aria-label="Cerrar detalle"
+      (click)="detailDialog.close()"
+    >
+      ×
+    </button>
+  </div>
+  @if (detailLoading()) {
+    <p role="status">Consultando información…</p>
+  }
+  @if (detailError()) {
+    <div class="notice error" role="alert">{{ detailError() }}</div>
+  }
+  @if (selected(); as student) {
+    <div class="profile-heading">
+      <span class="student-avatar large">{{ initials(student) }}</span>
+      <h3>{{ student.firstName }} {{ student.lastName }}</h3>
+      <span class="profile-label">Estudiante registrado</span>
+    </div>
+    <dl class="profile-data">
+      <dt>Nombre</dt>
+      <dd>{{ student.firstName }}</dd>
+      <dt>Apellido</dt>
+      <dd>{{ student.lastName }}</dd>
+      <dt>Correo electrónico</dt>
+      <dd>{{ student.email }}</dd>
+      <dt>Identificador único</dt>
+      <dd class="full-id">{{ student.id }}</dd>
+    </dl>
+  }
+  <div class="dialog-actions">
+    <button class="button secondary" (click)="detailDialog.close()">Cerrar ficha</button>
+  </div>
+</dialog>

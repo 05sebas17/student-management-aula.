@@ -1,0 +1,31 @@
+### Abrir con HTTP Client de IntelliJ o REST Client de VS Code.
+@baseUrl = http://localhost:8080
+@studentId = REEMPLAZAR_CON_UUID_DE_RESPUESTA
+
+### Crear: 201 Created y Location
+POST {{baseUrl}}/students
+Content-Type: application/json
+
+{
+  "firstName": "María",
+  "lastName": "García",
+  "email": "maria.garcia@unisalle.edu.co"
+}
+
+### Listar: 200 OK
+GET {{baseUrl}}/students
+
+### Consultar por identificador: 200 OK
+GET {{baseUrl}}/students/{{studentId}}
+
+### Validación: 400 Bad Request
+POST {{baseUrl}}/students
+Content-Type: application/json
+
+{"firstName":"", "lastName":"García", "email":"incorrecto"}
+
+### No encontrado: 404
+GET {{baseUrl}}/students/00000000-0000-0000-0000-000000000000
+
+### Estado del servicio
+GET {{baseUrl}}/actuator/health

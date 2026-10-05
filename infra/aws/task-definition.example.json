@@ -1,0 +1,51 @@
+{
+  "family": "aula-students-demo",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "runtimePlatform": {"operatingSystemFamily": "LINUX", "cpuArchitecture": "X86_64"},
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "backend",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/aula-api:1.0.0",
+      "essential": true,
+      "portMappings": [{"containerPort": 8081, "protocol": "tcp"}],
+      "environment": [
+        {"name": "PORT", "value": "8081"},
+        {"name": "DB_URL", "value": "jdbc:h2:mem:students;DB_CLOSE_DELAY=-1"}
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081/actuator/health || exit 1"],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 5,
+        "startPeriod": 60
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {"awslogs-group": "/ecs/aula-students-demo", "awslogs-region": "REGION", "awslogs-stream-prefix": "backend"}
+      }
+    },
+    {
+      "name": "frontend",
+      "image": "ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/aula-web:1.0.0",
+      "essential": true,
+      "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
+      "environment": [{"name": "API_UPSTREAM", "value": "http://127.0.0.1:8081"}],
+      "dependsOn": [{"containerName": "backend", "condition": "HEALTHY"}],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1"],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 10
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {"awslogs-group": "/ecs/aula-students-demo", "awslogs-region": "REGION", "awslogs-stream-prefix": "frontend"}
+      }
+    }
+  ]
+}

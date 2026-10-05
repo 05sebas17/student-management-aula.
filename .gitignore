@@ -1,0 +1,25 @@
+# Dependencies and build outputs
+**/node_modules/
+**/target/
+**/dist/
+**/.angular/
+**/coverage/
+**/playwright-report/
+**/test-results/
+# Local data and secrets
+**/data/
+.env
+.env.*
+!.env.example
+*.log
+*.pem
+*.key
+# IDE-specific local settings
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+infra/aws/*.local.json

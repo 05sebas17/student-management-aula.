@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: Aula Students API
+  version: 1.0.0
+  description: Registro, listado y consulta de estudiantes. Contrato mantenido junto al código.
+servers:
+  - url: http://localhost:8080
+    description: Spring Boot directo
+  - url: http://localhost:4200/api
+    description: Proxy Angular o Nginx
+paths:
+  /students:
+    get:
+      operationId: listStudents
+      summary: Lista todos los estudiantes ordenados por apellido, nombre e ID
+      responses:
+        '200':
+          description: Lista completa (vacía si no existen registros)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+    post:
+      operationId: createStudent
+      summary: Registra un estudiante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudent'
+      responses:
+        '201':
+          description: Estudiante creado
+          headers:
+            Location:
+              description: Ruta del estudiante creado
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Correo ya registrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /students/{id}:
+    get:
+      operationId: getStudent
+      summary: Consulta por UUID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Estudiante encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: No existe el estudiante
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  responses:
+    BadRequest:
+      description: Campos, identificador o JSON inválidos
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    CreateStudent:
+      type: object
+      required: [firstName, lastName, email]
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: María
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: García
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          example: maria.garcia@example.com
+    Student:
+      allOf:
+        - $ref: '#/components/schemas/CreateStudent'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: string
